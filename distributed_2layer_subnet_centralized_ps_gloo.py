@@ -171,6 +171,7 @@ def test(args, raw_model, test_loader, epoch, test_loss_log, test_acc_log):
 
 def worker_process(args):
     assert(args.rank != 0)
+    print(args.dist_backend, args.dist_url, args.rank, args.world_size)
     dist.init_process_group(backend=args.dist_backend, init_method=args.dist_url,
                             rank=args.rank, world_size=args.world_size)
     device = torch.device('cpu')
@@ -183,13 +184,16 @@ def worker_process(args):
     epochs = args.epochs
     train_time_log = np.zeros(epochs)
     for epoch in range(1, epochs + 1):
+        print(epoch)
         train(args, partitioned_model, None, optimizer, train_loader, epoch, train_time_log)
 
 
 def parameter_server_process(args):
+    print("Waiting for workers...")
     assert (args.rank == 0)
     dist.init_process_group(backend=args.dist_backend, init_method=args.dist_url,
                             rank=args.rank, world_size=args.world_size)
+    print("Initialized")
     device = torch.device('cpu')
     train_set = speech_dataset.train_dataset()
     test_set = speech_dataset.test_dataset()
@@ -210,12 +214,13 @@ def parameter_server_process(args):
     test_loss_log = np.zeros(epochs)
     test_acc_log = np.zeros(epochs)
     for epoch in range(1, epochs + 1):
+        print(epoch)
         train(args, partitioned_model, raw_model, optimizer, train_loader, epoch, train_time_log)
         test(args, raw_model, test_loader, epoch, test_loss_log, test_acc_log)
-    np.savetxt('./log/' + model_name + '_train_time.log', train_time_log, fmt='%1.4f', newline=' ')
-    np.savetxt('./log/' + model_name + '_test_loss.log', test_loss_log, fmt='%1.4f', newline=' ')
-    np.savetxt('./log/' + model_name + '_test_acc.log', test_acc_log, fmt='%1.4f', newline=' ')
-    torch.save(raw_model, './trained_models/' + model_name + '.pth')
+        np.savetxt('./log/' + model_name + '_train_time.log', train_time_log, fmt='%1.4f', newline=' ')
+        np.savetxt('./log/' + model_name + '_test_loss.log', test_loss_log, fmt='%1.4f', newline=' ')
+        np.savetxt('./log/' + model_name + '_test_acc.log', test_acc_log, fmt='%1.4f', newline=' ')
+        torch.save(raw_model, './trained_models/' + model_name + '.pth')
 
 
 def main():

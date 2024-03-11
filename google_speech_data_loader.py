@@ -127,7 +127,7 @@ class GoogleSpeechDataset(Dataset):
 
     @staticmethod
     def mel_log(audio, sample_rate):
-        s = librosa.feature.melspectrogram(audio.astype(np.float), sr=sample_rate, n_mels=128)
+        s = librosa.feature.melspectrogram(y=audio.astype(float), sr=sample_rate, n_mels=128)
         log_s = librosa.power_to_db(s, ref=np.max).reshape(-1)
         return log_s
 
