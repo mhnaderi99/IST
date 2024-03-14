@@ -18,10 +18,13 @@ RUN pip3 install -r requirements.txt
 FROM ubuntu:22.04 as target
 
 COPY distributed_2layer_subnet_centralized_ps_gloo.py ./
+COPY distributed_3layer_subnet_centralized_ps_gloo.py ./
 COPY google_speech_data_loader.py ./
 COPY ist_utilis.py ./
 
 COPY --from=build ./ ./
 RUN python3 "./google_speech_data_loader.py"
-ENTRYPOINT ["python3", "./distributed_2layer_subnet_centralized_ps_gloo.py"]
-CMD ["python3", "./distributed_2layer_subnet_centralized_ps_gloo.py"]
+# ENTRYPOINT ["python3", "./distributed_2layer_subnet_centralized_ps_gloo.py"]
+# CMD ["python3", "./distributed_2layer_subnet_centralized_ps_gloo.py"]
+ENTRYPOINT ["python3", "./distributed_3layer_subnet_centralized_ps_gloo.py"]
+CMD ["python3", "./distributed_3layer_subnet_centralized_ps_gloo.py"]

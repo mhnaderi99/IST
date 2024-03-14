@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ist-2layer-deploy
+spec:
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+      - name: myapp
+        image: ist 
+        imagePullPolicy: Never
+        resources:
+          limits:
+            memory: "8Gi"
+            cpu: "500m"
+        ports:
+        - containerPort: 3000
+        args:
+          - "--rank=0"
+          - "--world-size=2"
