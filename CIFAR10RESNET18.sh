@@ -9,6 +9,7 @@ do
         python3 cifar2n.py --model_name $lr"_"$trial"_cifar100_ws4_ist_final_160" --lr $lr --repartition_iter $local_iter --pytorch-seed $trial --rank=0 --cuda-id=0 &
         python3 cifar2n.py --model_name $lr"_"$trial"_cifar100_ws4_ist_final_160" --lr $lr --repartition_iter $local_iter --pytorch-seed $trial --rank=1 --cuda-id=1 &
         python3 cifar2n.py --model_name $lr"_"$trial"_cifar100_ws4_ist_final_160" --lr $lr --repartition_iter $local_iter --pytorch-seed $trial --rank=2 --cuda-id=2 &
+        python3 cifar2n.py --model_name $lr"_"$trial"_cifar100_ws4_ist_final_160" --lr $lr --repartition_iter $local_iter --pytorch-seed $trial --rank=3 --cuda-id=3 &        
         wait # wait for everything to complete before starting next test
         echo "Test complete!"
     done
