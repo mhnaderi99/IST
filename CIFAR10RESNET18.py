@@ -391,7 +391,7 @@ def main():
         'dataset': 'cifar10', #DATASET SPECIFICATION
         'repartition_iter': 50,  # number of iterations to perform before re-sampling subnets
         'epochs': 40,
-        'world_size': 3,  # ***** number of subnets to use during training
+        'world_size': 4,  # ***** number of subnets to use during training
         'layer_sizes': [3, 4, 23, 3],  # used for resnet baseline, number of blocks in each section
         'expansion': 1.,
         'lr': .01,
