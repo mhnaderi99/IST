@@ -435,6 +435,7 @@ def main():
         seed(args.pytorch_seed)
     # seed(0)  # This makes sure, node use the same random key so that they does not need to sync partition info.
     if args.use_cuda:
+        print(args.cuda_id, torch.cuda.device_count())
         assert args.cuda_id < torch.cuda.device_count()
         device = torch.device('cuda', args.cuda_id)
     else:
