@@ -391,7 +391,7 @@ def main():
         'dataset': 'cifar10', #DATASET SPECIFICATION
         'repartition_iter': 50,  # number of iterations to perform before re-sampling subnets
         'epochs': 40,
-        'world_size': 4,  # ***** number of subnets to use during training
+        # 'world_size': 4,  # ***** number of subnets to use during training
         'layer_sizes': [3, 4, 23, 3],  # used for resnet baseline, number of blocks in each section
         'expansion': 1.,
         'lr': .01,
@@ -410,6 +410,8 @@ def main():
                         help='master ip for distributed PyTorch')
     parser.add_argument('--rank', type=int, default=0, metavar='R',
                         help='rank for distributed PyTorch')
+    parser.add_argument('--world-size', type=int, default=2, metavar='D',
+                        help='partition group (default: 2)')
     parser.add_argument('--repartition_iter', type=int, default=50, metavar='N',
                         help='keep model in local update mode for how many iteration (default: 5)')
     parser.add_argument('--lr', type=float, default=0.1, metavar='LR',
@@ -426,6 +428,7 @@ def main():
 
     specs['repartition_iter'] = args.repartition_iter
     specs['lr'] = args.lr
+    specs['world_size'] = args.world_size
 
     if args.pytorch_seed == -1:
         torch.manual_seed(args.rank)
