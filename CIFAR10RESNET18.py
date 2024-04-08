@@ -280,7 +280,7 @@ class ISTResNetModel():
 
 
 def train(specs, args, start_time, model_name, ist_model: ISTResNetModel, optimizer, device, train_loader, test_loader,
-          epoch, num_sync, num_iter, train_time_log, test_loss_log, test_acc_log, epoch_start_log, epoch_end_log):
+          epoch, num_sync, num_iter, train_time_log, test_loss_log, test_acc_log, epoch_start_log, epoch_end_log, epoch_duration_log):
     # employ a step schedule for the sub nets
     lr = specs.get('lr', 1e-2)
     if epoch > int(specs['epochs'] * 0.5):
@@ -341,10 +341,12 @@ def train(specs, args, start_time, model_name, ist_model: ISTResNetModel, optimi
     epoch_duration = epoch_end_time - epoch_start_time
 
     # save model checkpoint at the end of each epoch
-    epoch_start_log[epoch] = epoch_start_time
-    epoch_end_log[epoch] = epoch_end_time
+    epoch_start_log[epoch-1] = epoch_start_time
+    epoch_end_log[epoch-1] = epoch_end_time
+    epoch_duration_log[epoch-1] = epoch_duration
     np.savetxt('./log/epochs/' + model_name + '_epoch_start_time.log', epoch_start_log, fmt='%1.4f', newline=', ')
     np.savetxt('./log/epochs/' + model_name + '_epoch_end_time.log', epoch_end_log, fmt='%1.4f', newline=', ')
+    np.savetxt('./log/epochs/' + model_name + '_epoch_durations.log', epoch_duration_log, fmt='%1.4f', newline=', ')
     if args.rank == 0:
         np.savetxt('./log/' + model_name + '_train_time.log', train_time_log, fmt='%1.4f', newline=' ')
         np.savetxt('./log/' + model_name + '_test_loss.log', test_loss_log, fmt='%1.4f', newline=' ')
@@ -395,7 +397,7 @@ def main():
         'model_type': 'preact_resnet',  # use to specify type of resnet to use in baseline
         'use_valid_set': False,
         'model_version': 'v1',  # only used for the mobilenet tests
-        'dataset': 'cifar10', #DATASET SPECIFICATION
+        # 'dataset': 'cifar10', #DATASET SPECIFICATION
         'repartition_iter': 50,  # number of iterations to perform before re-sampling subnets
         'epochs': 40,
         # 'world_size': 4,  # ***** number of subnets to use during training
@@ -409,7 +411,7 @@ def main():
     }
 
     parser = argparse.ArgumentParser(description='PyTorch ResNet (IST distributed)')
-    # parser.add_argument('--dataset', type=str, default='cifar10')
+    parser.add_argument('--dataset', type=str, default='cifar10')
     # The following dist-backed default should be changed to gloo for CPU usage
     parser.add_argument('--dist-backend', type=str, default='nccl', metavar='S',
                         help='backend type for distributed PyTorch')
@@ -436,6 +438,7 @@ def main():
     specs['repartition_iter'] = args.repartition_iter
     specs['lr'] = args.lr
     specs['world_size'] = args.world_size
+    specs['dataset'] = args.dataset
 
     if args.pytorch_seed == -1:
         torch.manual_seed(args.rank)
@@ -504,6 +507,7 @@ def main():
         test_acc_log = np.zeros(1000) if args.rank == 0 else None
         epoch_start_log = np.zeros(1000)
         epoch_end_log = np.zeros(1000)
+        epoch_duration_log = np.zeros(1000)
         start_epoch = 0
         num_sync = 0
         num_iter = 0
@@ -518,7 +522,7 @@ def main():
         num_sync, num_iter, start_time, optimizer = train(
             specs, args, start_time, model_name, ist_model, optimizer, device,
             trn_dl, test_dl, epoch, num_sync, num_iter, train_time_log, test_loss_log,
-            test_acc_log, epoch_start_log, epoch_end_log)
+            test_acc_log, epoch_start_log, epoch_end_log, epoch_duration_log)
 
 
 if __name__ == '__main__':

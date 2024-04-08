@@ -1,2 +1,11 @@
 report.py
 /logs
+dcgm-exporter.yaml
+gpu_logs/gpu-util.csv
+gpu_logs/gpu-mem-util.csv
+.gitignore
+logger.py
+/epoch-logs
+/gpu_logs
+/log
+Dockerfile

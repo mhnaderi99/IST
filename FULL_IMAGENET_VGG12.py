@@ -342,7 +342,7 @@ class ISTResNetModel():
 
 
 def train(specs, args, start_time, model_name, ist_model: ISTResNetModel, optimizer, device, train_loader, test_loader,
-          epoch, num_sync, num_iter, train_time_log, test_loss_log, test_acc_log):
+          epoch, num_sync, num_iter, train_time_log, test_loss_log, test_acc_log, epoch_start_log, epoch_end_log):
     # employ a step schedule for the sub nets
     lr = specs.get('lr', 1e-2)
     if epoch > int(specs['epochs'] * 0.5):
@@ -354,6 +354,7 @@ def train(specs, args, start_time, model_name, ist_model: ISTResNetModel, optimi
             pg['lr'] = lr
     print(f'Learning Rate: {lr}')
 
+    epoch_start_time = time.time()
     # training loop
     for i, (data, target) in enumerate(train_loader):
         data = data.to(device)
@@ -398,8 +399,13 @@ def train(specs, args, start_time, model_name, ist_model: ISTResNetModel, optimi
             print('done testing')
             start_time = time.time()
         num_iter = num_iter + 1
+    epoch_end_time = time.time()
 
     # save model checkpoint at the end of each epoch
+    epoch_start_log[epoch - 1] = epoch_start_time
+    epoch_end_log[epoch - 1] = epoch_end_time
+    np.savetxt('./log/epochs/' + model_name + '_epoch_start_time.log', epoch_start_log, fmt='%1.4f', newline=', ')
+    np.savetxt('./log/epochs/' + model_name + '_epoch_end_time.log', epoch_end_log, fmt='%1.4f', newline=', ')
     if args.rank == 0:
         np.savetxt('./log/' + model_name + '_train_time.log', train_time_log, fmt='%1.4f', newline=' ')
         np.savetxt('./log/' + model_name + '_test_loss.log', test_loss_log, fmt='%1.4f', newline=' ')
@@ -453,7 +459,7 @@ def main():
         'dataset': 'imagenet',
         'repartition_iter': 50,  # number of iterations to perform before re-sampling subnets
         'epochs': 40,
-        'world_size': 4,  # number of subnets to use during training
+        # 'world_size': 4,  # number of subnets to use during training
         'layer_sizes': [3, 4, 23, 3],  # used for resnet baseline, number of blocks in each section
         'expansion': 1.,
         'lr': .01,
@@ -471,6 +477,8 @@ def main():
                         help='master ip for distributed PyTorch')
     parser.add_argument('--rank', type=int, default=0, metavar='R',
                         help='rank for distributed PyTorch')
+    parser.add_argument('--world-size', type=int, default=2, metavar='D',
+                        help='partition group (default: 2)')
     parser.add_argument('--repartition_iter', type=int, default=50, metavar='N',
                         help='keep model in local update mode for how many iteration (default: 5)')
     parser.add_argument('--lr', type=float, default=0.1, metavar='LR',
@@ -486,6 +494,7 @@ def main():
 
     specs['repartition_iter'] = args.repartition_iter
     specs['lr'] = args.lr
+    specs['world_size'] = args.world_size
 
     if args.pytorch_seed == -1:
         torch.manual_seed(args.rank)
@@ -538,6 +547,8 @@ def main():
         train_time_log = np.zeros(1000) if args.rank == 0 else None
         test_loss_log = np.zeros(1000) if args.rank == 0 else None
         test_acc_log = np.zeros(1000) if args.rank == 0 else None
+        epoch_start_log = np.zeros(1000)
+        epoch_end_log = np.zeros(1000)
         start_epoch = 0
         num_sync = 0
         num_iter = 0
@@ -552,7 +563,7 @@ def main():
         num_sync, num_iter, start_time, optimizer = train(
             specs, args, start_time, model_name, ist_model, optimizer, device,
             trn_dl, test_dl, epoch, num_sync, num_iter, train_time_log, test_loss_log,
-            test_acc_log)
+            test_acc_log, epoch_start_log, epoch_end_log)
 
 
 if __name__ == '__main__':

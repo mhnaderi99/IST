@@ -20,6 +20,8 @@ COPY requirements.txt ./
 #COPY distributed_3layer_subnet_centralized_ps_gloo.py ./
 # COPY google_speech_data_loader.py ./
 COPY CIFAR10RESNET18.py ./
+# COPY FULL_IMAGENET_VGG12.py ./
+# COPY ResIST101CIFAR10.py ./
 #COPY CIFAR10RESNET18.sh ./
 COPY data.py ./
 COPY utils.py ./
@@ -41,3 +43,7 @@ COPY --from=build ./ ./
 #CMD ["python3", "./distributed_3layer_subnet_centralized_ps_gloo.py"]
 ENTRYPOINT ["python3", "./CIFAR10RESNET18.py"]
 CMD ["python3", "./CIFAR10RESNET18.py"]
+# ENTRYPOINT ["python3", "./FULL_IMAGENET_VGG12.py"]
+# CMD ["python3", "./FULL_IMAGENET_VGG12.py"]
+# ENTRYPOINT ["python3", "./ResIST101CIFAR10.py"]
+# CMD ["python3", "./ResIST101CIFAR10.py"]
